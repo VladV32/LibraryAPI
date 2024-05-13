@@ -2,63 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Responses\BaseApiResponse;
+use App\Models\Book;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function index(): BaseApiResponse
     {
-        //
+        $books = Book::all();
+        return $this->response->data($books);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request): BaseApiResponse
     {
-        //
+        $book = Book::create($request->all());
+        return $this->response->data($book)->setStatusCode(201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(string $id): BaseApiResponse
     {
-        //
+        $book = Book::findOrFail($id);
+        return $this->response->data($book);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, string $id): BaseApiResponse
     {
-        //
+        $book = Book::findOrFail($id);
+        $book->update($request->all());
+        return $this->response->data($book);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(string $id): BaseApiResponse
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $book = Book::findOrFail($id);
+        $book->delete();
+        return $this->response->data(null)->setStatusCode(204);
     }
 }
