@@ -12,7 +12,7 @@ class CreatePrivateAccessTokenCommand extends Command
 
     protected $description = 'Create a private access token for the specified user';
 
-    public function handle(PersonalAccessTokenFactory $tokenFactory)
+    public function handle(PersonalAccessTokenFactory $tokenFactory): void
     {
         $user = User::findOrFail($this->argument('user_id'));
 

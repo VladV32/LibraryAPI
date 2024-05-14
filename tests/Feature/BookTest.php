@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -47,16 +48,22 @@ class BookTest extends TestCase
 
     public function test_show_book()
     {
+        /**
+         * @var Book $book
+         */
         $book = Book::factory()->create();
-
+        $bookResource = new BookResource($book);
         $response = $this->get('/api/books/'.$book->id);
 
         $response->assertStatus(200);
-        $response->assertJson(['data' => $book->toArray()]);
+        $response->assertJson(['data' => $bookResource->resolve()]);
     }
 
     public function test_update_book()
     {
+        /**
+         * @var Book $book
+         */
         $book = Book::factory()->create();
 
         $updatedBookData = [
@@ -72,6 +79,9 @@ class BookTest extends TestCase
 
     public function test_delete_book()
     {
+        /**
+         * @var Book $book
+         */
         $book = Book::factory()->create();
 
         $response = $this->delete('/api/books/'.$book->id);
