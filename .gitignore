@@ -17,3 +17,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/storage/api-docs/api-docs.json
+/_ide_helper.php
+/resources/views/vendor/l5-swagger/.gitkeep
+/.rnd
