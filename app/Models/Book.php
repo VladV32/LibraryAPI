@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Filters\QueryFilter;
 use Database\Factories\BookFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @method static BookFactory factory($count = null, $state = [])
+ * @method static Builder|Book filter(QueryFilter $filters)
  * @method static Builder|Book newModelQuery()
  * @method static Builder|Book newQuery()
  * @method static Builder|Book query()
@@ -47,7 +49,7 @@ class Book extends Model
         'genre',
         'publication_date',
         'word_count',
-        'price'
+        'price',
     ];
 
     protected $casts = [
@@ -55,4 +57,13 @@ class Book extends Model
         'word_count' => 'integer',
         'price' => 'decimal:2',
     ];
+
+    protected array $filters = [
+        'title',
+    ];
+
+    public function scopeFilter(Builder $builder, QueryFilter $filters): Builder
+    {
+        return $filters->apply($builder);
+    }
 }
