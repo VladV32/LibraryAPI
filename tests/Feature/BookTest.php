@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
 class BookTest extends TestCase
@@ -24,7 +25,7 @@ class BookTest extends TestCase
 
         $response = $this->get('/api/books');
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertJsonCount(3, 'data');
     }
 
@@ -42,7 +43,8 @@ class BookTest extends TestCase
 
         $response = $this->post('/api/books', $bookData);
 
-        $response->assertStatus(201);
+        $response->assertCreated();
+        $response->assertJsonIsObject('data');
         $this->assertDatabaseHas('books', $bookData);
     }
 
@@ -55,7 +57,7 @@ class BookTest extends TestCase
         $bookResource = new BookResource($book);
         $response = $this->get('/api/books/'.$book->id);
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertJson(['data' => $bookResource->resolve()]);
     }
 
@@ -73,7 +75,7 @@ class BookTest extends TestCase
 
         $response = $this->put('/api/books/'.$book->id, $updatedBookData);
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertDatabaseHas('books', $updatedBookData);
     }
 
@@ -90,4 +92,73 @@ class BookTest extends TestCase
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
     }
 
+    public function test_create_new_book_with_invalid_data()
+    {
+        $invalidBookData = [
+            'title' => '',
+            'publisher' => 'Publisher Name',
+            'author' => 'Author Name',
+            'genre' => 'Fiction',
+            'publication_date' => 'invalid_date_format',
+            'word_count' => 'not_an_integer',
+            'price' => 'not_a_number',
+        ];
+
+        $response = $this->post('/api/books', $invalidBookData);
+
+        $response->assertStatus(422);
+
+        $response->assertJson(function (AssertableJson $json) {
+            $json->where('status', false)
+                ->where('data', null)
+                ->where('notify', null)
+                ->has('errors', function ($errors) {
+                    $errors->has('title');
+                    $errors->has('publication_date');
+                    $errors->has('word_count');
+                    $errors->has('price');
+                });
+        });
+    }
+
+    public function test_get_details_of_nonexistent_book()
+    {
+        $response = $this->get('/api/books/9999');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_update_book_with_invalid_data()
+    {
+        /**
+         * @var Book $book
+         */
+        $book = Book::factory()->create();
+
+        $invalidUpdateData = [
+            'title' => '',
+            'publisher' => 'Updated Publisher Name',
+            'publication_date' => 'invalid_date_format',
+        ];
+
+        $response = $this->put('/api/books/'.$book->id, $invalidUpdateData);
+
+        $response->assertStatus(422);
+        $response->assertJson(function (AssertableJson $json) {
+            $json->where('status', false)
+                ->where('data', null)
+                ->where('notify', null)
+                ->has('errors', function ($errors) {
+                    $errors->has('title');
+                    $errors->has('publication_date');
+                });
+        });
+    }
+
+    public function test_delete_nonexistent_book()
+    {
+        $response = $this->delete('/api/books/9999');
+
+        $response->assertStatus(404);
+    }
 }
