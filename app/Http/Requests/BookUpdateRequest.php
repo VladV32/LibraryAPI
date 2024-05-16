@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use OpenApi\Annotations as OA;
 
 /**
@@ -55,7 +54,7 @@ use OpenApi\Annotations as OA;
  *     )
  * )
  */
-class BookUpdateRequest extends FormRequest
+class BookUpdateRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {
@@ -65,13 +64,13 @@ class BookUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'nullable|string|max:255',
-            'publisher' => 'nullable|string|max:255',
-            'author' => 'nullable|string|max:255',
-            'genre' => 'nullable|string|max:255',
-            'publication_date' => 'nullable|date',
-            'word_count' => 'nullable|integer',
-            'price' => 'nullable|numeric',
+            'title' => 'required_if:title,!=,|string|min:1|max:255',
+            'publisher' => 'required_if:publisher,!=,|string|min:1|max:255',
+            'author' => 'required_if:author,!=,|string|min:1|max:255',
+            'genre' => 'required_if:genre,!=,|string|min:1|max:255',
+            'publication_date' => 'required_if:publication_date,!=,|date',
+            'word_count' => 'required_if:word_count,!=,|integer',
+            'price' => 'required_if:price,!=,|numeric',
         ];
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use OpenApi\Annotations as OA;
 
 /**
@@ -50,7 +49,7 @@ use OpenApi\Annotations as OA;
  *      )
  * )
  */
-class BookStoreRequest extends FormRequest
+class BookStoreRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {
