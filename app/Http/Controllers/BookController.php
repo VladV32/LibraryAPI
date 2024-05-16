@@ -5,15 +5,20 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BookStoreRequest;
 use App\Http\Requests\BookUpdateRequest;
 use App\Http\Resources\BookResource;
+use App\Http\Resources\BookResourceCollection;
 use App\Http\Responses\BaseApiResponse;
 use App\Models\Book;
+use App\Services\BookService;
+use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
-class BookController extends Controller
+class BookController extends BaseController
 {
     /**
      * Get a list of all books.
      *
+     * @param  Request  $request
+     * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Get(
@@ -24,14 +29,20 @@ class BookController extends Controller
      *      @OA\Response(
      *          response=200,
      *          description="List of books",
-     *          @OA\JsonContent(ref="#/components/schemas/BookResource")
+     *          @OA\JsonContent(
+     *              @OA\Property(property="status", type="boolean", description="Bolean status value", example=true),
+     *              @OA\Property(property="data", type="object", ref="#/components/schemas/BookResourceCollection"),
+     *              @OA\Property(property="errors", type="string", description="String or array of data of response errors", example=null),
+     *              @OA\Property(property="notify", type="string", description="String or array of notificaions", example=null)
+     *          )
      *      )
      * )
      */
-    public function index(): BaseApiResponse
+    public function index(Request $request, BookService $bookService): BaseApiResponse
     {
-        $books = Book::all();
-        return $this->response->data(BookResource::collection($books));
+        $books = $bookService->getBooks($request)->paginate(self::DEFAULT_API_PAGINATION);
+
+        return $this->response->data(BookResourceCollection::make($books));
     }
 
     /**
@@ -52,13 +63,18 @@ class BookController extends Controller
      *      @OA\Response(
      *          response=201,
      *          description="Book created successfully",
-     *          @OA\JsonContent(ref="#/components/schemas/BookResource")
+     *          @OA\JsonContent(
+     *              @OA\Property(property="status", type="boolean", description="Bolean status value", example=true),
+     *              @OA\Property(property="data", type="object", ref="#/components/schemas/BookResource"),
+     *              @OA\Property(property="errors", type="string", description="String or array of data of response errors", example=null),
+     *              @OA\Property(property="notify", type="string", description="String or array of notificaions", example=null)
+     *           )
      *      )
      * )
      */
     public function store(BookStoreRequest $request): BaseApiResponse
     {
-        $book = Book::create($request->all());
+        $book = Book::create($request->validated());
         return $this->response->data(new BookResource($book))->setStatusCode(201);
     }
 
@@ -86,7 +102,12 @@ class BookController extends Controller
      *      @OA\Response(
      *          response=200,
      *          description="Book details",
-     *          @OA\JsonContent(ref="#/components/schemas/BookResource")
+     *          @OA\JsonContent(
+     *              @OA\Property(property="status", type="boolean", description="Bolean status value", example=true),
+     *              @OA\Property(property="data", type="object", ref="#/components/schemas/BookResource"),
+     *              @OA\Property(property="errors", type="string", description="String or array of data of response errors", example=null),
+     *              @OA\Property(property="notify", type="string", description="String or array of notificaions", example=null)
+     *          )
      *      ),
      *      @OA\Response(
      *          response=404,
@@ -129,7 +150,12 @@ class BookController extends Controller
      *      @OA\Response(
      *          response=200,
      *          description="Book details",
-     *          @OA\JsonContent(ref="#/components/schemas/BookResource")
+     *          @OA\JsonContent(
+     *              @OA\Property(property="status", type="boolean", description="Bolean status value", example=true),
+     *              @OA\Property(property="data", type="object", ref="#/components/schemas/BookResource"),
+     *              @OA\Property(property="errors", type="string", description="String or array of data of response errors", example=null),
+     *              @OA\Property(property="notify", type="string", description="String or array of notificaions", example=null)
+     *          )
      *      ),
      *      @OA\Response(
      *          response=404,
@@ -140,7 +166,7 @@ class BookController extends Controller
     public function update(BookUpdateRequest $request, int $id): BaseApiResponse
     {
         $book = Book::findOrFail($id);
-        $book->update($request->all());
+        $book->update($request->validated());
         return $this->response->data(new BookResource($book));
     }
 
