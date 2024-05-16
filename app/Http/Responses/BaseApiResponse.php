@@ -4,10 +4,56 @@ namespace App\Http\Responses;
 
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Session;
+use OpenApi\Annotations as OA;
 
 /**
  * Class BaseApiResponse
  * @package App\Http\Responses
+ */
+
+/**
+ * @OA\Schema(
+ *      schema="BaseApiResponse",
+ *      type="object",
+ *      @OA\Property(property="status", type="boolean", description="Bolean status value"),
+ *      @OA\Property(property="data", type="string", description="String or array of data"),
+ *      @OA\Property(property="errors", type="string", description="String or array of data of response errors"),
+ *      @OA\Property(property="notify", type="string", description="String or array of notificaions")
+ * )
+ */
+
+/**
+ * @OA\Schema(
+ *      schema="BaseApiBadResponse",
+ *      type="object",
+ *      @OA\Property(property="status", type="boolean", example=false, description="Bolean status value"),
+ *      @OA\Property(property="data", type="string", description="String or array of data"),
+ *      @OA\Property(property="errors", type="array", description="String or array of data of response errors",
+ *           @OA\Items(
+ *                example={
+ *                     "attribute":"error of attribute in endpoint"
+ *                }
+ *           )
+ *      ),
+ *      @OA\Property(property="notify", type="string", description="String or array of notificaions")
+ * )
+ */
+
+/**
+ * @OA\Schema(
+ *      schema="BaseApiModelNotFoundResponse",
+ *      type="object",
+ *      @OA\Property(property="status", type="boolean", example=false, description="Bolean status value"),
+ *      @OA\Property(property="data", type="string", description="String or array of data"),
+ *      @OA\Property(property="errors", type="array", description="String or array of data of response errors",
+ *           @OA\Items(
+ *                example={
+ *                     "attribute":"No query results for model [*modelName*]."
+ *                }
+ *           )
+ *      ),
+ *      @OA\Property(property="notify", type="string", description="String or array of notificaions")
+ * )
  */
 class BaseApiResponse extends Response
 {
@@ -35,7 +81,7 @@ class BaseApiResponse extends Response
         if ($statusCode) {
             $this->statusCode = $statusCode;
         } elseif ($this->isSuccessful()) {
-            $this->statusCode = self::HTTP_BAD_REQUEST;
+            $this->statusCode = self::HTTP_UNPROCESSABLE_ENTITY;
         }
 
         if (!is_null($data)) {
@@ -147,49 +193,3 @@ class BaseApiResponse extends Response
         return $response;
     }
 }
-
-
-/**
- * @OA\Schema(
- *      schema="BaseApiResponse",
- *      type="object",
- *      @OA\Property(property="status", type="boolean", description="Bolean status value"),
- *      @OA\Property(property="data", type="string", description="String or array of data"),
- *      @OA\Property(property="errors", type="string", description="String or array of data of response errors"),
- *      @OA\Property(property="notify", type="string", description="String or array of notificaions")
- * )
- */
-
-/**
- * @OA\Schema(
- *      schema="BaseApiBadResponse",
- *      type="object",
- *      @OA\Property(property="status", type="boolean", example=false, description="Bolean status value"),
- *      @OA\Property(property="data", type="string", description="String or array of data"),
- *      @OA\Property(property="errors", type="array", description="String or array of data of response errors",
- *           @OA\Items(
- *                example={
- *                     "attribute":"error of attribute in endpoint"
- *                }
- *           )
- *      ),
- *      @OA\Property(property="notify", type="string", description="String or array of notificaions")
- * )
- */
-
-/**
- * @OA\Schema(
- *      schema="BaseApiModelNotFoundResponse",
- *      type="object",
- *      @OA\Property(property="status", type="boolean", example=false, description="Bolean status value"),
- *      @OA\Property(property="data", type="string", description="String or array of data"),
- *      @OA\Property(property="errors", type="array", description="String or array of data of response errors",
- *           @OA\Items(
- *                example={
- *                     "attribute":"No query results for model [*modelName*]."
- *                }
- *           )
- *      ),
- *      @OA\Property(property="notify", type="string", description="String or array of notificaions")
- * )
- */
