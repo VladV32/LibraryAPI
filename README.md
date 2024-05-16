@@ -24,19 +24,23 @@ This project provides a RESTful API for managing books in a library.
 
 ## Usage
 
-1. Run database migrations to ensure database schema is up-to-date:
+1. Run database migrations to ensure the database schema is up-to-date:
 
    `./vendor/bin/sail artisan migrate`
 
-2. Generate a personal access client for Passport:
+2. Generate Swagger documentation:
+
+   `./vendor/bin/sail artisan l5-swagger:generate`
+
+3. Generate a personal access client for Passport:
 
    `./vendor/bin/sail artisan passport:client --personal`
 
-3. Create a new user (replace `{name}`, `{email}`, and `{password}`):
+4. Create a new user (replace `{name}`, `{email}`, and `{password}`):
 
    `./vendor/bin/sail artisan user:create {name} {email} {password}`
 
-4. Create a token for a user (replace `{user_id}` with the actual user ID):
+5. Create a token for a user (replace `{user_id}` with the actual user ID):
 
    `./vendor/bin/sail artisan token:create {user_id}`
 
