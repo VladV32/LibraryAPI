@@ -49,6 +49,7 @@ class BookController extends BaseController
      * Create a new book.
      *
      * @param  BookStoreRequest  $request
+     * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Post(
@@ -72,16 +73,18 @@ class BookController extends BaseController
      *      )
      * )
      */
-    public function store(BookStoreRequest $request): BaseApiResponse
+    public function store(BookStoreRequest $request, BookService $bookService): BaseApiResponse
     {
-        $book = Book::create($request->validated());
-        return $this->response->data(new BookResource($book))->setStatusCode(201);
+        return $this->response->data(
+            BookResource::make($bookService->createBook($request->validated()))
+        )->setStatusCode(201);
     }
 
     /**
      * Get a specific book by ID.
      *
      * @param  int  $id
+     * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Get(
@@ -115,10 +118,9 @@ class BookController extends BaseController
      *      )
      * )
      */
-    public function show(int $id): BaseApiResponse
+    public function show(int $id, BookService $bookService): BaseApiResponse
     {
-        $book = Book::findOrFail($id);
-        return $this->response->data(new BookResource($book));
+        return $this->response->data(BookResource::make($bookService->showBook($id)));
     }
 
     /**
@@ -126,6 +128,7 @@ class BookController extends BaseController
      *
      * @param  BookUpdateRequest  $request
      * @param  int  $id
+     * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Put(
@@ -163,17 +166,16 @@ class BookController extends BaseController
      *      )
      * )
      */
-    public function update(BookUpdateRequest $request, int $id): BaseApiResponse
+    public function update(BookUpdateRequest $request, int $id, BookService $bookService): BaseApiResponse
     {
-        $book = Book::findOrFail($id);
-        $book->update($request->validated());
-        return $this->response->data(new BookResource($book));
+        return $this->response->data(BookResource::make($bookService->updateBook($id, $request->validated())));
     }
 
     /**
      * Delete a specific book by ID.
      *
      * @param  int  $id
+     * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Delete(
@@ -201,10 +203,10 @@ class BookController extends BaseController
      *      )
      * )
      */
-    public function destroy(int $id): BaseApiResponse
+    public function destroy(int $id, BookService $bookService): BaseApiResponse
     {
-        $book = Book::findOrFail($id);
-        $book->delete();
+        $bookService->deleteBook($id);
+
         return $this->response->data(null)->setStatusCode(204);
     }
 }
