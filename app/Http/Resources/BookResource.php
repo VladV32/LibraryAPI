@@ -84,7 +84,7 @@ class BookResource extends JsonResource
             'genre' => $this->resource->genre,
             'publication_date' => $this->resource->publication_date->toISOString(),
             'word_count' => $this->resource->word_count,
-            'price' => $this->resource->price,
+            'price' => (float)$this->resource->price,
         ];
     }
 }
