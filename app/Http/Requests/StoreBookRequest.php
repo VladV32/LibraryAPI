@@ -6,7 +6,7 @@ use OpenApi\Annotations as OA;
 
 /**
  * @OA\Schema(
- *      title="BookStoreRequest",
+ *      title="StoreBookRequest",
  *      description="Book store request schema",
  *      type="object",
  *      required={"title", "publisher", "author", "genre", "publication_date", "word_count", "price"},
@@ -49,7 +49,7 @@ use OpenApi\Annotations as OA;
  *      )
  * )
  */
-class BookStoreRequest extends BaseApiRequest
+class StoreBookRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Filters\BookFilter;
-use App\Http\Requests\BookStoreRequest;
 use App\Models\Book;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -27,9 +26,10 @@ class BookService
         return Book::findOrFail($idOfBook);
     }
 
-    public function updateBook(int $idBook, array $attributesOfBook): Book
+    public function updateBook(int $bookId, array $attributesOfBook): Book
     {
-        $book = Book::findOrFail($idBook);
+        $book = Book::findOrFail($bookId);
+
         $book->update($attributesOfBook);
 
         return $book;
@@ -38,6 +38,7 @@ class BookService
     public function deleteBook(int $idBook): bool
     {
         $book = Book::findOrFail($idBook);
+
         return $book->delete();
     }
 }

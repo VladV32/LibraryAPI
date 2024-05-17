@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\BookStoreRequest;
-use App\Http\Requests\BookUpdateRequest;
+use App\Http\Requests\DestroyBookRequest;
+use App\Http\Requests\IndexBookRequest;
+use App\Http\Requests\ShowBookRequest;
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Http\Resources\BookResourceCollection;
 use App\Http\Responses\BaseApiResponse;
-use App\Models\Book;
 use App\Services\BookService;
-use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
 class BookController extends BaseController
@@ -17,7 +18,7 @@ class BookController extends BaseController
     /**
      * Get a list of all books.
      *
-     * @param  Request  $request
+     * @param  IndexBookRequest  $indexBookRequest
      * @param  BookService  $bookService
      * @return BaseApiResponse
      *
@@ -26,29 +27,41 @@ class BookController extends BaseController
      *      operationId="getBooksList",
      *      tags={"Books"},
      *      summary="Get list of books",
+     *      @OA\Parameter(
+     *          name="Authorization",
+     *          in="header",
+     *          description="Bearer token",
+     *          required=true,
+     *          @OA\Schema(type="string")
+     *      ),
      *      @OA\Response(
      *          response=200,
      *          description="List of books",
      *          @OA\JsonContent(
-     *              @OA\Property(property="status", type="boolean", description="Bolean status value", example=true),
+     *              @OA\Property(property="status", type="boolean", description="Boolean status value", example=true),
      *              @OA\Property(property="data", type="object", ref="#/components/schemas/BookResourceCollection"),
      *              @OA\Property(property="errors", type="string", description="String or array of data of response errors", example=null),
-     *              @OA\Property(property="notify", type="string", description="String or array of notificaions", example=null)
+     *              @OA\Property(property="notify", type="string", description="String or array of notifications", example=null)
      *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponce")
      *      )
      * )
      */
-    public function index(Request $request, BookService $bookService): BaseApiResponse
+    public function index(IndexBookRequest $indexBookRequest, BookService $bookService): BaseApiResponse
     {
-        $books = $bookService->getBooks($request)->paginate(self::DEFAULT_API_PAGINATION);
+        $books = $bookService->getBooks($indexBookRequest)->paginate(self::DEFAULT_API_PAGINATION);
 
-        return $this->response->data(BookResourceCollection::make($books));
+        return $this->respondWithCollection(BookResourceCollection::make($books));
     }
 
     /**
      * Create a new book.
      *
-     * @param  BookStoreRequest  $request
+     * @param  StoreBookRequest  $storeBookRequest
      * @param  BookService  $bookService
      * @return BaseApiResponse
      *
@@ -57,9 +70,16 @@ class BookController extends BaseController
      *      operationId="createBook",
      *      tags={"Books"},
      *      summary="Create a new book",
+     *      @OA\Parameter(
+     *          name="Authorization",
+     *          in="header",
+     *          description="Bearer token",
+     *          required=true,
+     *          @OA\Schema(type="string")
+     *      ),
      *      @OA\RequestBody(
      *          required=true,
-     *          @OA\JsonContent(ref="#/components/schemas/BookStoreRequest")
+     *          @OA\JsonContent(ref="#/components/schemas/StoreBookRequest")
      *      ),
      *      @OA\Response(
      *          response=201,
@@ -70,30 +90,43 @@ class BookController extends BaseController
      *              @OA\Property(property="errors", type="string", description="String or array of data of response errors", example=null),
      *              @OA\Property(property="notify", type="string", description="String or array of notificaions", example=null)
      *           )
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponce")
      *      )
      * )
      */
-    public function store(BookStoreRequest $request, BookService $bookService): BaseApiResponse
+    public function store(StoreBookRequest $storeBookRequest, BookService $bookService): BaseApiResponse
     {
-        return $this->response->data(
-            BookResource::make($bookService->createBook($request->validated()))
-        )->setStatusCode(201);
+        $book = $bookService->createBook($storeBookRequest->validated());
+
+        return $this->respondWithResource(BookResource::make($book), BaseApiResponse::HTTP_CREATED);
     }
 
     /**
      * Get a specific book by ID.
      *
-     * @param  int  $id
+     * @param  int  $book
+     * @param  ShowBookRequest  $showBookRequest
      * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Get(
-     *      path="/api/books/{id}",
+     *      path="/api/books/{book}",
      *      operationId="getBookById",
      *      tags={"Books"},
      *      summary="Get a book by ID",
      *      @OA\Parameter(
-     *          name="id",
+     *          name="Authorization",
+     *          in="header",
+     *          description="Bearer token",
+     *          required=true,
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Parameter(
+     *          name="book",
      *          description="Book ID",
      *          required=true,
      *          in="path",
@@ -115,29 +148,45 @@ class BookController extends BaseController
      *      @OA\Response(
      *          response=404,
      *          description="Book not found"
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponce")
      *      )
      * )
      */
-    public function show(int $id, BookService $bookService): BaseApiResponse
+    public function show(int $book, ShowBookRequest $showBookRequest, BookService $bookService): BaseApiResponse
     {
-        return $this->response->data(BookResource::make($bookService->showBook($id)));
+        $showBookRequest->validated();
+
+        $book = $bookService->showBook($book);
+
+        return $this->respondWithResource(BookResource::make($book));
     }
 
     /**
      * Update a specific book by ID.
      *
-     * @param  BookUpdateRequest  $request
-     * @param  int  $id
+     * @param  int  $book
+     * @param  UpdateBookRequest  $request
      * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Put(
-     *      path="/api/books/{id}",
+     *      path="/api/books/{book}",
      *      operationId="updateBook",
      *      tags={"Books"},
      *      summary="Update a book by ID",
      *      @OA\Parameter(
-     *          name="id",
+     *          name="Authorization",
+     *          in="header",
+     *          description="Bearer token",
+     *          required=true,
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Parameter(
+     *          name="book",
      *          description="Book ID",
      *          required=true,
      *          in="path",
@@ -148,7 +197,7 @@ class BookController extends BaseController
      *      ),
      *      @OA\RequestBody(
      *          required=true,
-     *          @OA\JsonContent(ref="#/components/schemas/BookUpdateRequest")
+     *          @OA\JsonContent(ref="#/components/schemas/UpdateBookRequest")
      *      ),
      *      @OA\Response(
      *          response=200,
@@ -163,28 +212,43 @@ class BookController extends BaseController
      *      @OA\Response(
      *          response=404,
      *          description="Book not found"
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponce")
      *      )
      * )
      */
-    public function update(BookUpdateRequest $request, int $id, BookService $bookService): BaseApiResponse
+    public function update(int $book, UpdateBookRequest $request, BookService $bookService): BaseApiResponse
     {
-        return $this->response->data(BookResource::make($bookService->updateBook($id, $request->validated())));
+        $book = $bookService->updateBook($book, $request->validated());
+
+        return $this->respondWithResource(BookResource::make($book));
     }
 
     /**
      * Delete a specific book by ID.
      *
-     * @param  int  $id
+     * @param  int  $book
+     * @param  DestroyBookRequest  $destroyBookRequest
      * @param  BookService  $bookService
      * @return BaseApiResponse
      *
      * @OA\Delete(
-     *      path="/api/books/{id}",
+     *      path="/api/books/{book}",
      *      operationId="deleteBook",
      *      tags={"Books"},
      *      summary="Delete a book by ID",
      *      @OA\Parameter(
-     *          name="id",
+     *          name="Authorization",
+     *          in="header",
+     *          description="Bearer token",
+     *          required=true,
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Parameter(
+     *          name="book",
      *          description="Book ID",
      *          required=true,
      *          in="path",
@@ -200,13 +264,20 @@ class BookController extends BaseController
      *      @OA\Response(
      *          response=404,
      *          description="Book not found"
+     *       ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *          @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponce")
      *      )
      * )
      */
-    public function destroy(int $id, BookService $bookService): BaseApiResponse
+    public function destroy(int $book, DestroyBookRequest $destroyBookRequest, BookService $bookService): BaseApiResponse
     {
-        $bookService->deleteBook($id);
+        $destroyBookRequest->validated();
 
-        return $this->response->data(null)->setStatusCode(204);
+        $bookService->deleteBook($book);
+
+        return $this->respondWithNoContent();
     }
 }

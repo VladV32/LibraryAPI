@@ -81,7 +81,7 @@ class BaseApiResponse extends Response
         if ($statusCode) {
             $this->statusCode = $statusCode;
         } elseif ($this->isSuccessful()) {
-            $this->statusCode = self::HTTP_UNPROCESSABLE_ENTITY;
+            $this->statusCode = self::HTTP_NOT_FOUND;
         }
 
         if (!is_null($data)) {

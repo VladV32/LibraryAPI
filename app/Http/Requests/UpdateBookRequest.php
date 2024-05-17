@@ -6,10 +6,10 @@ use OpenApi\Annotations as OA;
 
 /**
  * @OA\Schema(
- *     title="BookUpdateRequest",
+ *     title="UpdateBookRequest",
  *     description="Book update request body data",
  *     type="object",
- *     required={"id"},
+ *     required={"book"},
  *     @OA\Property(
  *         property="title",
  *         description="Book title",
@@ -54,7 +54,7 @@ use OpenApi\Annotations as OA;
  *     )
  * )
  */
-class BookUpdateRequest extends BaseApiRequest
+class UpdateBookRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {
@@ -64,6 +64,7 @@ class BookUpdateRequest extends BaseApiRequest
     public function rules(): array
     {
         return [
+            'book' => 'required|exists:books,id',
             'title' => 'required_if:title,!=,|string|min:1|max:255',
             'publisher' => 'required_if:publisher,!=,|string|min:1|max:255',
             'author' => 'required_if:author,!=,|string|min:1|max:255',
@@ -71,6 +72,20 @@ class BookUpdateRequest extends BaseApiRequest
             'publication_date' => 'required_if:publication_date,!=,|date',
             'word_count' => 'required_if:word_count,!=,|integer',
             'price' => 'required_if:price,!=,|numeric',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'book' => $this->route('book'),
+        ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'book.exists' => trans('Book not found'),
         ];
     }
 }
