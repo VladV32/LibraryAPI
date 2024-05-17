@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\BookFilter;
 use App\Http\Requests\DestroyBookRequest;
 use App\Http\Requests\IndexBookRequest;
 use App\Http\Requests\ShowBookRequest;
@@ -53,7 +54,7 @@ class BookController extends BaseController
      */
     public function index(IndexBookRequest $indexBookRequest, BookService $bookService): BaseApiResponse
     {
-        $books = $bookService->getBooks($indexBookRequest)->paginate(self::DEFAULT_API_PAGINATION);
+        $books = $bookService->getBooks(new BookFilter($indexBookRequest), self::DEFAULT_API_PAGINATION);
 
         return $this->respondWithCollection(BookResourceCollection::make($books));
     }
@@ -272,8 +273,11 @@ class BookController extends BaseController
      *      )
      * )
      */
-    public function destroy(int $book, DestroyBookRequest $destroyBookRequest, BookService $bookService): BaseApiResponse
-    {
+    public function destroy(
+        int $book,
+        DestroyBookRequest $destroyBookRequest,
+        BookService $bookService
+    ): BaseApiResponse {
         $destroyBookRequest->validated();
 
         $bookService->deleteBook($book);

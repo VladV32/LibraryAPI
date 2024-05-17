@@ -2,43 +2,44 @@
 
 namespace App\Services;
 
-use App\Filters\BookFilter;
+use App\Filters\QueryFilter;
 use App\Models\Book;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
+use App\Repositories\BookRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class BookService
+readonly class BookService
 {
-    public function getBooks(Request $request): Builder
+    /**
+     * BookService constructor.
+     * @param  BookRepository  $bookRepository
+     */
+    public function __construct(private BookRepository $bookRepository)
     {
-        return Book::filter(new BookFilter($request))
-            ->orderByDesc('created_at')
-            ->orderByDesc('id');
+        //
+    }
+
+    public function getBooks(QueryFilter $queryFilter, int $perPage): LengthAwarePaginator
+    {
+        return $this->bookRepository->getBooks($queryFilter, $perPage);
     }
 
     public function createBook(array $attributesOfBook): Book
     {
-        return Book::create($attributesOfBook);
+        return $this->bookRepository->createBook($attributesOfBook);
     }
 
     public function showBook(int $idOfBook): Book
     {
-        return Book::findOrFail($idOfBook);
+        return $this->bookRepository->getBook($idOfBook);
     }
 
-    public function updateBook(int $bookId, array $attributesOfBook): Book
+    public function updateBook(int $idOfBook, array $attributesOfBook): Book
     {
-        $book = Book::findOrFail($bookId);
-
-        $book->update($attributesOfBook);
-
-        return $book;
+        return $this->bookRepository->updateBook($idOfBook, $attributesOfBook);
     }
 
-    public function deleteBook(int $idBook): bool
+    public function deleteBook(int $idOfBook): bool
     {
-        $book = Book::findOrFail($idBook);
-
-        return $book->delete();
+        return $this->bookRepository->deleteBook($idOfBook);
     }
 }
